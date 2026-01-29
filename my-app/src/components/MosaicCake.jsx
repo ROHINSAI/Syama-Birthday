@@ -8,6 +8,7 @@ const IMAGES = [
 
 const MosaicCake = ({ onComplete }) => {
   const [pixels, setPixels] = useState([]);
+  const [joined, setJoined] = useState(false);
 
   useEffect(() => {
     // Flatten grid into coordinate list for easier rendering
@@ -30,6 +31,13 @@ const MosaicCake = ({ onComplete }) => {
       });
     });
     setPixels(newPixels);
+
+    // Trigger the "joining" of pixels after the build animation (max delay 4s + 1.5s duration)
+    const timer = setTimeout(() => {
+      setJoined(true);
+    }, 6000); // 6 seconds to be safe and let user see the mosaic first
+
+    return () => clearTimeout(timer);
   }, []);
 
 
@@ -44,8 +52,9 @@ const MosaicCake = ({ onComplete }) => {
         style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${CAKE_ART[0].length}, ${PIXEL_SIZE}px)`,
-          gap: '1px',
+          gap: joined ? '0px' : '1px', // Remove gap when joined
           margin: '0 auto', // Center the grid itself
+          transition: 'gap 2s ease-in-out', // Smooth transition for joining
         }}
       >
         {pixels.map((pixel) => {
@@ -61,14 +70,18 @@ const MosaicCake = ({ onComplete }) => {
               height: `${PIXEL_SIZE}px`,
               backgroundColor: pixel.color, 
               backgroundImage: isCandle ? 'none' : `url(${pixel.image})`,
-              // Fit the whole image to the grid area
-              backgroundSize: `${GRID_WIDTH}px ${GRID_HEIGHT}px`, 
-              backgroundPosition: `-${pixel.x * PIXEL_SIZE}px -${pixel.y * PIXEL_SIZE}px`,
+              // User Request: "Increase cake height... don't change zoom... change y offset slightly".
+              // Scale: 0.98x (Maintained as per user preference).
+              // X: -255 (Maintained).
+              // Y: -330 (Shifted DOWN from -390 to reveal Hair, using new bottom pixels for Chin).
+              backgroundSize: `${0.98 * GRID_WIDTH}px auto`, 
+              backgroundPosition: `${-255 - pixel.x * PIXEL_SIZE}px ${-330 - pixel.y * PIXEL_SIZE}px`,
               gridColumn: pixel.x + 1, 
               gridRow: pixel.y + 1,
-              borderRadius: '2px',
-              boxShadow: isCandle ? '0 0 8px #fbbf24' : '0 0 2px rgba(0,0,0,0.3)', // Glow for candles
+              borderRadius: joined ? '0px' : '2px', // Sharpen corners when joined
+              boxShadow: isCandle ? '0 0 8px #fbbf24' : (joined ? 'none' : '0 0 2px rgba(0,0,0,0.3)'), // Remove individual shadows when joined
               zIndex: isCandle ? 20 : 1,
+              transition: 'all 2s ease-in-out', // Smooth transition for individual pixels
             }}
             whileHover={{ scale: 2.5, zIndex: 100, borderRadius: '4px' }}
           />

@@ -32,13 +32,18 @@ const MosaicCake = ({ onComplete }) => {
     setPixels(newPixels);
   }, []);
 
+
+  const PIXEL_SIZE = 12; // Back to small pixels, but LOTS of them
+  const GRID_WIDTH = CAKE_ART[0].length * PIXEL_SIZE;
+  const GRID_HEIGHT = CAKE_ART.length * PIXEL_SIZE;
+
   return (
     <div className="center-content">
       <div
         className="cake-grid"
         style={{
           display: 'grid',
-          gridTemplateColumns: `repeat(${CAKE_ART[0].length}, 12px)`,
+          gridTemplateColumns: `repeat(${CAKE_ART[0].length}, ${PIXEL_SIZE}px)`,
           gap: '1px',
           margin: '0 auto', // Center the grid itself
         }}
@@ -52,12 +57,13 @@ const MosaicCake = ({ onComplete }) => {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: Math.random() * 4.0, duration: 1.5 }} // Slower, more gradual build
             style={{
-              width: '12px',
-              height: '12px',
+              width: `${PIXEL_SIZE}px`,
+              height: `${PIXEL_SIZE}px`,
               backgroundColor: pixel.color, 
               backgroundImage: isCandle ? 'none' : `url(${pixel.image})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              // Fit the whole image to the grid area
+              backgroundSize: `${GRID_WIDTH}px ${GRID_HEIGHT}px`, 
+              backgroundPosition: `-${pixel.x * PIXEL_SIZE}px -${pixel.y * PIXEL_SIZE}px`,
               gridColumn: pixel.x + 1, 
               gridRow: pixel.y + 1,
               borderRadius: '2px',
